@@ -1,0 +1,50 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: byte 10 input test
+      id: byte-10-input-test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: byte 10 input test
+        setup-command: make
+        command: make test ARG=1
+        timeout: 1
+        max-score: 35
+    - name: byte 20 input test
+      id: byte-20-input-test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: byte 20 input test
+        setup-command: ''
+        command: make test ARG=2
+        timeout: 1
+        max-score: 35
+    - name: Argument test
+      id: argument-test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Argument test
+        setup-command: ''
+        command: make test ARG=3
+        timeout: 1
+        max-score: 30
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        BYTE-10-INPUT-TEST_RESULTS: "${{steps.byte-10-input-test.outputs.result}}"
+        BYTE-20-INPUT-TEST_RESULTS: "${{steps.byte-20-input-test.outputs.result}}"
+        ARGUMENT-TEST_RESULTS: "${{steps.argument-test.outputs.result}}"
+      with:
+        runners: byte-10-input-test,byte-20-input-test,argument-test
